@@ -82,7 +82,7 @@ class GlobalLinker(nn.Module):
         super(GlobalLinker, self).__init__()
         self.config = config
         self.bert = BertModel.from_pretrained(os.environ["project_root"]+self.config.bert_path)
-        self.relation_model = GlobalPointer(self.config, 2)  ## 这里的2写死了，很有可能是来判断头实体和尾实体是否具有关系（有/无），而不是我们要抽取的关系
+        self.relation_model = GlobalPointer(self.config, 2)  # 2:头实体和尾实体
         self.head_model = GlobalPointer(self.config, self.config.num_rel)
         self.tail_model = GlobalPointer(self.config, self.config.num_rel)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -1,9 +1,14 @@
 import json
-import os.path
+import os
+try:
+    os.environ['project_root']
+except KeyError:
+    os.environ["project_root"] = os.path.abspath("../../../")
 from torch.utils.data import Dataset
 from transformers import BertTokenizer
 import numpy as np
 import torch
+from config import Config
 
 
 def padding(l, length, t):
@@ -134,9 +139,9 @@ def collate_fn(batch):
 
     batch_input_ids = torch.LongTensor(cur_batch, max_text_length).zero_()
     batch_mask = torch.LongTensor(cur_batch, max_text_length).zero_()
-    batch_entity_list = torch.LongTensor(cur_batch, 2, max_length, 2).zero_()
-    batch_head_list = torch.LongTensor(cur_batch, 6, max_head_len, 2).zero_()
-    batch_tail_list = torch.LongTensor(cur_batch, 6, max_tail_len, 2).zero_()
+    batch_entity_list = torch.LongTensor(cur_batch, entity_list[0].shape[0], max_length, 2).zero_()
+    batch_head_list = torch.LongTensor(cur_batch, head_list[0].shape[0], max_head_len, 2).zero_()  # batch_size, relation_category, ....
+    batch_tail_list = torch.LongTensor(cur_batch, tail_list[0].shape[0], max_tail_len, 2).zero_()
 
     for i in range(cur_batch):
         batch_input_ids[i, :token_len[i]].copy_(
@@ -152,8 +157,7 @@ def collate_fn(batch):
             "input_ids": batch_input_ids,  # tuple, shape: batch_size without padding
             "attention_mask": batch_mask,  # tuple, shape: batch_size without padding
             "entity_list": batch_entity_list,  # Tensor, shape: batch_size * 2 * 一批当中entity_list的最大长度 * 2
-            "head_list": batch_head_list,
-            # Tensor, shape: batch_size * 关系种类 * 一批当中head_list的最大长度 * 2   一个样本中，存在九种关系，head_list存储的是每一个三元组两个实体的头位置，因此最后一个维度是2；倒数第二个维度代表每种关系下存在多少个三元组。
+            "head_list": batch_head_list,  # Tensor, shape: batch_size * 关系种类 * 一批当中head_list的最大长度 * 2   一个样本中，存在九种关系，head_list存储的是每一个三元组两个实体的头位置，因此最后一个维度是2；倒数第二个维度代表每种关系下存在多少个三元组。
             "tail_list": batch_tail_list,  # Tensor, shape: batch_size * 关系种类 * 一批当中tail_list的最大长度 * 2
             "triple_list": spo_list,  # tuple, shape: batch_size
             "token": token}
@@ -164,9 +168,8 @@ if __name__ == '__main__':
     from torch.utils.data import DataLoader
 
     config = Config()
-    config.dataset = "bart_format"
     dataset = MyDataset(config, config.train_data)
-    dataloader = DataLoader(dataset, batch_size=1, collate_fn=collate_fn, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=10, collate_fn=collate_fn, shuffle=False)
     for data in dataloader:
         # print("*" * 50)
         print(data["entity_list"].shape)
