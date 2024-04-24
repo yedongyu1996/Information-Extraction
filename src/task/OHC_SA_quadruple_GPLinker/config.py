@@ -8,13 +8,13 @@ class Config(object):
     def __init__(self):
         # self.dataset = "bart_format"
         self.dataset = "OHC_SA_quadruple"
-        self.train_data = "data/{}/train_convert.json".format(self.dataset)
-        self.dev_data = "data/{}/dev_convert.json".format(self.dataset)
-        self.test_data = "data/{}/test_convert.json".format(self.dataset)
+        self.train_data = "data/{}/train_convert_cate.json".format(self.dataset)
+        self.dev_data = "data/{}/dev_convert_cate.json".format(self.dataset)
+        self.test_data = "data/{}/test_convert_cate.json".format(self.dataset)
         self.map_cate = "data/{}/aspect_category2id.json".format(self.dataset)
         self.map_senti = "data/{}/sentiment_polarity2id.json".format(self.dataset)
         self.model_name = "GPLinker_quadruple"
-        self.batch_size = 4
+        self.batch_size = 16
         self.hidden_size = 64
         self.learning_rate = 2e-5
         self.bert_path = "/resource/bert-base-chinese"

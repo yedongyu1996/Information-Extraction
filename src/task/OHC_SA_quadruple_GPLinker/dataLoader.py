@@ -39,9 +39,10 @@ class MyDataset(Dataset):
     def __init__(self, config, fn):
         self.config = config
 
-        with open(os.environ["project_root"] + "/" + self.config.map_rel, "r",
-                  encoding="utf-8") as f:
-            self.label2id = json.load(f)[0]
+        with open(os.environ["project_root"] + "/" + self.config.map_cate, "r", encoding="utf-8") as f:
+            self.cate_label2id = json.load(f)[0]
+        with open(os.environ["project_root"] + "/" + self.config.map_senti, "r", encoding="utf-8") as f:
+            self.senti_label2id = json.load(f)[0]
 
         self.tokenizer = BertTokenizer.from_pretrained(
             os.environ["project_root"] + "/" + self.config.bert_path, do_lower_case=False)
@@ -82,16 +83,16 @@ class MyDataset(Dataset):
             entity_list[0].append([aspect["from"] + 1, aspect["to"]])  # +1是因为前面加了CLS
             entity_list[1].append([opinion["from"] + 1, opinion["to"]])
 
-            category = self.label2id[aspect['category']]
+            category = self.cate_label2id[aspect['category']]
             head_category_list[category].append([aspect["from"] + 1, opinion["from"] + 1])
             tail_category_list[category].append([aspect["to"], opinion["to"]])
 
-            sentiment = self.label2id[aspect['sentiment']]
+            sentiment = self.senti_label2id[aspect['polarity']]
             head_sentiment_list[sentiment].append([aspect["from"] + 1, opinion["from"] + 1])
             tail_sentiment_list[sentiment].append([aspect["to"], opinion["to"]])
 
             quadruple_list.append(
-                [aspect["from"] + 1, aspect["to"], aspect["polarity"], aspect["category"], opinion["from"] + 1,
+                [aspect["from"] + 1, aspect["to"], aspect["category"], aspect["polarity"], opinion["from"] + 1,
                  opinion["to"]])
 
         for label in entity_list + head_category_list + tail_category_list + head_sentiment_list + tail_sentiment_list:
@@ -186,5 +187,7 @@ if __name__ == '__main__':
     for data in dataloader:
         # print("*" * 50)
         print(data["entity_list"].shape)
-        print(data["head_list"].shape)
-        print(data["tail_list"].shape)
+        print(data["head_cate_list"].shape)
+        print(data["tail_cate_list"].shape)
+        print(data["head_senti_list"].shape)
+        print(data["tail_senti_list"].shape)

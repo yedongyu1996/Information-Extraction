@@ -87,8 +87,8 @@ class GlobalLinker(nn.Module):
         self.config = config
         self.bert = BertModel.from_pretrained(os.environ["project_root"] + self.config.bert_path)
         self.entity_model = GlobalPointer(self.config, 2)  # 2:头实体和尾实体
-        self.head_category_model = GlobalPointer(self.config, self.config.num_rel)  # 类别head position
-        self.tail_category_model = GlobalPointer(self.config, self.config.num_rel)  # 类别tail position
+        self.head_category_model = GlobalPointer(self.config, self.config.num_category)  # 类别head position
+        self.tail_category_model = GlobalPointer(self.config, self.config.num_category)  # 类别tail position
         self.head_sentiment_model = GlobalPointer(self.config, self.config.senti_polarity)  # 情感head position, senti_polarity:2
         self.tail_sentiment_model = GlobalPointer(self.config, self.config.senti_polarity)  # 情感tail position, senti_polarity:2
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -98,8 +98,8 @@ class GlobalLinker(nn.Module):
         attention_mask = data["attention_mask"].to(self.device)
         hidden_state = self.bert(input_ids, attention_mask=attention_mask)
         entity_logits = self.entity_model(hidden_state, attention_mask)
-        head_relation_logits = self.head_relation_model(hidden_state, attention_mask)
-        tail_relation_logits = self.tail_relation_model(hidden_state, attention_mask)
+        head_relation_logits = self.head_category_model(hidden_state, attention_mask)
+        tail_relation_logits = self.tail_category_model(hidden_state, attention_mask)
         head_sentiment_logits = self.head_sentiment_model(hidden_state, attention_mask)
         tail_sentiment_logits = self.tail_sentiment_model(hidden_state, attention_mask)
         return entity_logits, head_relation_logits, tail_relation_logits, head_sentiment_logits, tail_sentiment_logits

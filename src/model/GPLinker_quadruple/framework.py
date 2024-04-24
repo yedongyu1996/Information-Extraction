@@ -18,8 +18,10 @@ def count_params(model):
 class Framework(object):
     def __init__(self, config):
         self.config = config
-        with open(os.environ["project_root"] + "/" + self.config.map_rel, "r", encoding="utf-8") as f:
-            self.id2label = json.load(f)[1]
+        with open(os.environ["project_root"] + "/" + self.config.map_cate, "r", encoding="utf-8") as f:
+            self.cate_id2label = json.load(f)[1]
+        with open(os.environ["project_root"] + "/" + self.config.map_senti, "r", encoding="utf-8") as f:
+            self.senti_id2label = json.load(f)[1]
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def train(self, train_dataloader, dev_dataloader, test_dataloader):
@@ -56,13 +58,13 @@ class Framework(object):
                 global_step += 1
             print("epoch {} global_step: {} global_loss: {:5.4f}".format(epoch, global_step, global_loss))
             global_loss = 0
-            if epoch >= 7:
-                for threshold in [-5, -4, -3, -2, -1, -0.5, 0, 1, 2]:
+            if epoch >= 0:
+                for threshold in [-0.5]:
                     precision, recall, f1_score, predict = self.evaluate(model, dev_dataloader, threshold=threshold)
                     if best_f1_score < f1_score:
                         best_f1_score = f1_score
                         best_threshold = threshold
-                        json.dump(predict, open(os.environ["project_root"] + self.config.dev_result, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+                        # json.dump(predict, open(os.environ["project_root"] + self.config.dev_result, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
                         p, r = precision, recall
                         best_epoch = epoch
                         print("save model......")
@@ -102,23 +104,28 @@ class Framework(object):
                 predict = []
                 for sh, st in subjects:
                     for oh, ot in objects:
-                        sp = np.where(outputs[1][:, sh, oh] > threshold)[0]
-                        op = np.where(outputs[2][:, st, ot] > threshold)[0]
-                        rs = set(sp) & set(op)  # cate
-                        for r in rs:
-                            relation = self.id2label[str(r)]
-                            predict.append((sh, st, relation, oh, ot))
+                        cate_head = np.where(outputs[1][:, sh, oh] > threshold)[0]
+                        cate_tail = np.where(outputs[2][:, st, ot] > threshold)[0]
+                        cate = set(cate_head) & set(cate_tail)  # cate
+                        for c in cate:
+                            senti_head = np.where(outputs[3][:, sh, oh] > threshold)[0]
+                            senti_tail = np.where(outputs[4][:, st, ot] > threshold)[0]
+                            ss = set(senti_head) & set(senti_tail)  # cate
+                            for s in ss:
+                                category = self.cate_id2label[str(c)]
+                                senti = self.senti_id2label[str(s)]
+                                predict.append((sh, st, category, senti, oh, ot))
 
-                triple = data["quadruple_list"][0]
-                triple = set(to_tuple(triple))
+                quadruple = data["quadruple_list"][0]
+                quadruple = set(to_tuple(quadruple))
                 predict = set(predict)
-                correct_num += len(triple & predict)
+                correct_num += len(quadruple & predict)
                 predict_num += len(predict)
-                gold_num += len(triple)
-                lack = triple - predict
-                new = predict - triple
-                predict.add({"text": text, "gold": list(triple), "predict": list(predict), "lack": list(lack),
-                             "new": list(new)})
+                gold_num += len(quadruple)
+                lack = quadruple - predict
+                new = predict - quadruple
+                # predict.add({"text": text, "gold": list(quadruple), "predict": list(predict), "lack": list(lack),
+                #              "new": list(new)})
             recall = correct_num / (gold_num + 1e-10)
             precision = correct_num / (predict_num + 1e-10)
             f1_score = 2 * recall * precision / (recall + precision + 1e-10)
