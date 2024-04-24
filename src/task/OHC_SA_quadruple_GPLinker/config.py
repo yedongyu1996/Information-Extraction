@@ -14,7 +14,7 @@ class Config(object):
         self.map_cate = "data/{}/aspect_category2id.json".format(self.dataset)
         self.map_senti = "data/{}/sentiment_polarity2id.json".format(self.dataset)
         self.model_name = "GPLinker_quadruple"
-        self.batch_size = 16
+        self.batch_size = 4
         self.hidden_size = 64
         self.learning_rate = 2e-5
         self.bert_path = "/resource/bert-base-chinese"

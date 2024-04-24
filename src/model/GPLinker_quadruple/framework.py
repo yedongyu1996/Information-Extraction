@@ -67,7 +67,7 @@ class Framework(object):
                         # json.dump(predict, open(os.environ["project_root"] + self.config.dev_result, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
                         p, r = precision, recall
                         best_epoch = epoch
-                        print("save model......")
+                        print("save model......,current threshold: {}".format(best_threshold))
                         torch.save(model.state_dict(), "checkpoint/" + "GPLinker_triplet_" + current_time + '.pt')
         print(
             "best_epoch: {} precision: {:5.4f} recall: {:5.4f} f1_score: {:5.4f} threshold: {}".format(best_epoch, p, r,
@@ -130,5 +130,5 @@ class Framework(object):
             precision = correct_num / (predict_num + 1e-10)
             f1_score = 2 * recall * precision / (recall + precision + 1e-10)
             print("correct_num:{} predict_num: {} gold_num: {}".format(correct_num, predict_num, gold_num), end=' ')
-            print("precision: {:5.4f} recall: {:5.4f} f1_score: {:5.4f}".format(precision, recall, f1_score))
+            print("precision: {:5.4f} recall: {:5.4f} f1_score: {:5.4f} threshold: {}".format(precision, recall, f1_score, threshold))
         return precision, recall, f1_score, predict
