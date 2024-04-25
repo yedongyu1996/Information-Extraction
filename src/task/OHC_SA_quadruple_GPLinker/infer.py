@@ -64,6 +64,6 @@ while True:
                     for s in ss:
                         category = cate_id2label[str(c)]
                         senti = senti_id2label[str(s)]
-                        predict.append((token[sh: st+1], category, senti, token[oh: ot+1]))
+                        predict.append((''.join(token[sh: st+1]), category, senti, ''.join(token[oh: ot+1])))
         for vol in predict:
             print(vol)
