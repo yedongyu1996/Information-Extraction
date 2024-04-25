@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../../model/GPLinker_quadruple")  # 添加模型的模块
+sys.path.append("../../model/GPLinker_quadruple/framework")  # 添加模型的模块
 sys.path.append("../../task/OHC_SA_quadruple_GPLinker")  # 添加任务的模块
 import os
 os.environ["project_root"] = os.path.abspath("../../..")  # 定位到项目根目录，以便后续加载文件
