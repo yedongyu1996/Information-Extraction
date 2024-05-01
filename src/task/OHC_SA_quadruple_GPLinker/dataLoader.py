@@ -184,10 +184,7 @@ if __name__ == '__main__':
     config = Config()
     dataset = MyDataset(config, config.train_data)
     dataloader = DataLoader(dataset, batch_size=10, collate_fn=collate_fn, shuffle=False)
+    lens = 0
     for data in dataloader:
-        # print("*" * 50)
-        print(data["entity_list"].shape)
-        print(data["head_cate_list"].shape)
-        print(data["tail_cate_list"].shape)
-        print(data["head_senti_list"].shape)
-        print(data["tail_senti_list"].shape)
+        lens += len(data["quadruple_list"])
+    print(lens)

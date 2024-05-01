@@ -24,10 +24,10 @@ def input_category():
     对原数据中的方面进行归类
     :return:
     """
-    with open("aspect_category_dic.txt", "r+", encoding="utf-8")as f1:
-        aspect_category = eval(f1.read().replace('\n',''))
+    with open("aspect_category_dic.txt", "r+", encoding="utf-8") as f1:
+        aspect_category = eval(f1.read().replace('\n', ''))
     for path in ['train', 'test', 'dev']:
-        with open(path + "_convert.json", "r+", encoding="utf-8")as f2:
+        with open(path + "_convert.json", "r+", encoding="utf-8") as f2:
             datas = json.load(f2)
         for data in datas:  # data: dic
             aspects = data["aspects"]
@@ -37,12 +37,18 @@ def input_category():
                     aspect["category"] = aspect_category[term]
                 else:
                     aspect["category"] = "其他"
-        with open(path + "_convert_cate.json", "w+", encoding="utf-8")as f3:
+        with open(path + "_convert_cate.json", "w+", encoding="utf-8") as f3:
             json.dump(datas, f3, ensure_ascii=False)
 
 
+def static_aspect():
+    with open("../dev_convert_cate.json", "r+", encoding="utf-8") as f2:
+        datas = json.load(f2)
+    lens = 0
+    for data in datas:
+        lens += len(data["aspects"])
+    print(lens)
+
+
 if __name__ == "__main__":
-
-    input_category()
-
-
+    static_aspect()

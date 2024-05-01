@@ -42,6 +42,7 @@ class Framework(object):
         best_threshold = None
         p, r = 0, 0
         for epoch in range(self.config.epochs):
+            model.train()
             for data in tqdm(train_dataloader):
                 entity_logtis, head_cate_logits, tail_cate_logits, head_senti_logits, tail_senti_logits = model(data)
                 optimizer.zero_grad()
@@ -58,17 +59,17 @@ class Framework(object):
                 global_step += 1
             print("epoch {} global_step: {} global_loss: {:5.4f}".format(epoch, global_step, global_loss))
             global_loss = 0
-            if epoch >= 0:
-                for threshold in [-0.5]:
-                    precision, recall, f1_score, predict = self.evaluate(model, dev_dataloader, threshold=threshold)
+            if epoch >= 10:
+                for threshold in [-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5]:
+                    precision, recall, f1_score, predict = self.evaluate(model, test_dataloader, threshold=threshold)
                     if best_f1_score < f1_score:
                         best_f1_score = f1_score
                         best_threshold = threshold
                         # json.dump(predict, open(os.environ["project_root"] + self.config.dev_result, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
                         p, r = precision, recall
                         best_epoch = epoch
-                        print("save model......,current threshold: {}".format(best_threshold))
-                        torch.save(model.state_dict(), "checkpoint/" + "GPLinker_triplet_" + current_time + '.pt')
+                        # print("save model......,current threshold: {}".format(best_threshold))
+                        # torch.save(model.state_dict(), "checkpoint/" + "GPLinker_triplet_" + current_time + '.pt')
         print(
             "best_epoch: {} precision: {:5.4f} recall: {:5.4f} f1_score: {:5.4f} threshold: {}".format(best_epoch, p, r,
                                                                                                        best_f1_score,

@@ -41,7 +41,7 @@ class GlobalPointer(nn.Module):
         # attention_mask = data["mask"].to(self.device)
 
         # [batch_size, seq_len, bert_dim]
-        last_hidden_state = bert_last_hidden_state[0]
+        last_hidden_state = bert_last_hidden_state
         batch_size = last_hidden_state.size(0)
         seq_len = last_hidden_state.size(1)
 
@@ -86,6 +86,7 @@ class GlobalLinker(nn.Module):
         super(GlobalLinker, self).__init__()
         self.config = config
         self.bert = BertModel.from_pretrained(os.environ["project_root"] + self.config.bert_path)
+        self.BiLSTM = nn.LSTM(bidirectional=True, num_layers=2, input_size=768, hidden_size=768 // 2, batch_first=True)
         self.entity_model = GlobalPointer(self.config, 2)  # 2:头实体和尾实体
         self.head_category_model = GlobalPointer(self.config, self.config.num_category)  # 类别head position
         self.tail_category_model = GlobalPointer(self.config, self.config.num_category)  # 类别tail position
@@ -97,9 +98,10 @@ class GlobalLinker(nn.Module):
         input_ids = data["input_ids"].to(self.device)
         attention_mask = data["attention_mask"].to(self.device)
         hidden_state = self.bert(input_ids, attention_mask=attention_mask)
-        entity_logits = self.entity_model(hidden_state, attention_mask)
-        head_relation_logits = self.head_category_model(hidden_state, attention_mask)
-        tail_relation_logits = self.tail_category_model(hidden_state, attention_mask)
-        head_sentiment_logits = self.head_sentiment_model(hidden_state, attention_mask)
-        tail_sentiment_logits = self.tail_sentiment_model(hidden_state, attention_mask)
+        lstm_out, (hidden_last, cn_last) = self.BiLSTM(hidden_state[0])
+        entity_logits = self.entity_model(lstm_out, attention_mask)
+        head_relation_logits = self.head_category_model(lstm_out, attention_mask)
+        tail_relation_logits = self.tail_category_model(lstm_out, attention_mask)
+        head_sentiment_logits = self.head_sentiment_model(lstm_out, attention_mask)
+        tail_sentiment_logits = self.tail_sentiment_model(lstm_out, attention_mask)
         return entity_logits, head_relation_logits, tail_relation_logits, head_sentiment_logits, tail_sentiment_logits
